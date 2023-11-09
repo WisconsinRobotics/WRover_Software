@@ -60,8 +60,8 @@ def run_mock_data() -> None:
 
     mock_heading = 0
     mock_gps = CoordinateMsg()
-    mock_gps.latitude = 10
-    mock_gps.longitude = 10
+    mock_gps.latitude = 39.397283363899916
+    mock_gps.longitude = -113.12379807045856
 
     print("sent fake nav data")
 
@@ -69,13 +69,13 @@ def run_mock_data() -> None:
     t = 0
     while not rospy.is_shutdown():
         laser.ranges = get_laser_ranges(t)
-        # distanceData.publish(laser)
+        distanceData.publish(laser)
 
         zero_msg.header.seq = frameCount
         zero_msg.header.stamp = rospy.get_rostime()
         frameCount += 1
 
-        mock_heading_pub.publish(mock_heading)
+        #mock_heading_pub.publish(mock_heading)
         mock_gps_pub.publish(mock_gps)
         zero_pub.publish(zero_msg)
         sleeper.sleep()

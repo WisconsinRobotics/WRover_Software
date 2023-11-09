@@ -11,7 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   wr_drive_msgs
-  wroboclaw
+  #wroboclaw
 )
 
 ## System dependencies are found with CMake's conventions

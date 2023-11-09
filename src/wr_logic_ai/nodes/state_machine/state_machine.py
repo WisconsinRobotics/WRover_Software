@@ -67,11 +67,11 @@ class NavStateMachine(StateMachine):
 
     def init_w_ros(self):
 
-        set_matrix_color(COLOR_AUTONOMOUS)
+        #set_matrix_color(COLOR_AUTONOMOUS)
 
         pub = rospy.Publisher("/control/drive_system/cmd",
                               DriveTrainCmd, queue_size=1)
-        stop_time = rospy.get_time() + 7
+        stop_time = rospy.get_time() + .01
         self._init_tmr = rospy.Timer(rospy.Duration.from_sec(
             0.1), lambda _: self.init_calibrate(pub, stop_time))
 
@@ -100,13 +100,16 @@ class NavStateMachine(StateMachine):
             0.2), lambda _: self.mux_pub.publish(self.mux_long_range))
 
         # enter autonomous mode
-        set_matrix_color(COLOR_AUTONOMOUS)
+        #set_matrix_color(COLOR_AUTONOMOUS) TODO:This breaks rviz
 
         self._client = actionlib.SimpleActionClient(
             "LongRangeActionServer", LongRangeAction)
         self._client.wait_for_server()
         goal = LongRangeGoal(target_lat=self._mgr.get_coordinate()[
                              "lat"], target_long=self._mgr.get_coordinate()["long"])
+        
+        print(goal)
+
         self._client.send_goal(goal, done_cb=lambda status, result:
                                self._longRangeActionComplete(status, result))
 

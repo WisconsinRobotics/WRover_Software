@@ -90,7 +90,7 @@ def get_valley(
     # For testing:
     else:
         #hist = gaussian_smooth.gaussian_filter1d(data.ranges, smoothing)
-        hist = data.ranges
+        hist = list(data.ranges)
 
     # This is to prevent expanding constant obstacles from behind the robot, which can
     # inadvertently and unpredictably (due to sensor noise) block out most of the view

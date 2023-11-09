@@ -51,7 +51,7 @@ def initialize() -> None:
     rospy.Subscriber('/gps_coord_data', CoordinateMsg, update_gps_coord)
 
     # Subscribe to heading data
-    rospy.Subscriber('/heading_data', Float64, update_heading)
+    #rospy.Subscriber('/heading_data', Float64, update_heading)
 
     # Subscribe to lidar data
     rospy.Subscriber('/scan', LaserScan, update_navigation)
@@ -97,7 +97,10 @@ def update_target(target_lat, target_long) -> bool:
     # Construct the planar target angle relative to east, accounting for curvature
     imu = AngleCalculations(current_lat, current_long,
                             target_lat, target_long)
+    
+    
     target_angle = imu.get_angle() % 360
+    rospy.logerr(target_angle)
     if imu.get_distance() < NAV_THRESH_DISTANCE:
         return True
     else:
