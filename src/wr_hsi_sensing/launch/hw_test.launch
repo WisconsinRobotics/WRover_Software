@@ -1,7 +1,0 @@
-<launch>
-    <!-- <arg name="debug" default="false"/> -->
-    <!-- TODO (@Tzancc): undo commenting to bring back IMU sensors -->
-    <!-- and work on reformatting this module as well so things aren't just "test" -->
-    <!-- <node name="imu" type="imu_testing.py" pkg="wr_hsi_sensing" /> -->
-    <node name="gps" type="gps_testing.py" pkg="wr_hsi_sensing" />
-</launch>

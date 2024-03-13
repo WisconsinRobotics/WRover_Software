@@ -1,0 +1,17 @@
+debug: 1 # Range 0-4 (0 means no debug statements will print)
+
+device: /dev/ttyACM0
+frame_id: gps # TODO: change it in the future?
+
+config_on_startup: false
+uart1:
+  baudrate: 9600
+rate: 1
+nav_rate: 1
+publish:
+  all: true
+# fix_mode: auto
+# dgnss_mode: 3 # Fixed mode
+
+# inf: 
+#   all: true

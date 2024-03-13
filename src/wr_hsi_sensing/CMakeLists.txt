@@ -7,7 +7,12 @@ project(wr_hsi_sensing)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS message_generation std_msgs rospy)
+find_package(catkin REQUIRED COMPONENTS 
+    message_generation
+    std_msgs
+    rospy
+    ublox_gps
+)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)

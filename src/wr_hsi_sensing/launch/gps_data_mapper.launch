@@ -1,0 +1,6 @@
+<launch>
+    <!-- Launches GPS data mapping node that translate ardusimple GPS messages to CoordinateMsg -->
+    <!-- <arg name="debug" default="false"/> -->
+    <include file="$(find wr_hsi_sensing)/launch/ardusimple_provided.launch" />
+    <node name="gps_mapper" type="gps_forwarding_node.py" pkg="wr_hsi_sensing" output="screen"/>
+</launch>
