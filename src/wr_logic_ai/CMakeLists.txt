@@ -70,6 +70,7 @@ add_action_files(
   FILES
   LongRange.action
   ShortRange.action
+  SearchState.action
 )
 
 # # Generate added messages and services with any dependencies listed here

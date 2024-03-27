@@ -1,5 +1,5 @@
 uint8 target_type
-uint8 TARGET_TYPE_GPS_ONLY = 0
+uint8 TARGET_TYPE_GPS_ONLY = 0 # Might delete later on.
 uint8 TARGET_TYPE_VISION = 1
 ---
 ---

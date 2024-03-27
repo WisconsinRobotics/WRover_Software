@@ -29,7 +29,10 @@ from wr_logic_ai.msg import (
     LongRangeGoal,
     LongRangeActionResult,
 )
+import coord_calculations, travel_timer
 from wr_logic_ai.msg import ShortRangeAction, ShortRangeGoal, ShortRangeActionResult
+from wr_logic_ai.msg import SearchStateAction, SearchStateGoal, SearchStateActionResult
+from wr_logic_ai.srv import SearchPatternService
 from wr_led_matrix.srv import (
     led_matrix as LEDMatrix,
     led_matrixRequest as LEDMatrixRequest,
@@ -80,6 +83,8 @@ class NavStateMachine(StateMachine):
     stLongRange = State()
     ## State representing that the robot is recovering from a error state
     stLongRangeRecovery = State()
+    ## State representing that the robot is searching for the target
+    stSearch = State()
     ## State representing that the robot is running in short range mode
     stShortRange = State()
     ## State representing that the robot has completed a task at a waypoint
@@ -92,14 +97,17 @@ class NavStateMachine(StateMachine):
     evSuccess = (
         stLongRange.to(stShortRange)
         | stLongRangeRecovery.to(stLongRange)
+        | stSearch.to(stShortRange) 
         | stShortRange.to(stWaypointSuccess)
     )
     ## Event representing an error condition being raised
     evError = (
         stLongRange.to(stLongRangeRecovery)
         | stLongRangeRecovery.to(stLongRangeRecovery)
+        | stSearch.to(stLongRange)
         | stShortRange.to(stLongRange)
     )
+    
     ## Event representing a shortcircuit state transition from WaypointSuccess to LongRange
     evNotWaiting = stWaypointSuccess.to(stLongRange)
     ## Event representing an unconditional state transition from Init to LongRange
@@ -125,6 +133,8 @@ class NavStateMachine(StateMachine):
         # Initialization of messages to switch the mux
         self.mux_long_range = NavigationState()
         self.mux_long_range.state = NavigationState.NAVIGATION_STATE_LONG_RANGE
+        self.mux_search = NavigationState()
+        self.mux_search.state = NavigationState.NAVIGATION_STATE_SEARCH
         self.mux_short_range = NavigationState()
         self.mux_short_range.state = NavigationState.NAVIGATION_STATE_SHORT_RANGE
         super(NavStateMachine, self).__init__()
@@ -258,6 +268,54 @@ class NavStateMachine(StateMachine):
 
     def on_exit_stLongRangeRecovery(self) -> None:
         self.timer.shutdown()  # Shutdown mux timer
+
+    def _searchActionComplete(self, state: GoalStatus, _: SearchStateActionResult) -> None: # SearchActionResult
+        if state == GoalStatus.SUCCEEDED:
+            self.evSuccess()
+        else:
+            self.evError()
+
+    def on_enter_stSearch(self) -> None:
+        distance = 4
+        num_vertices = 22
+
+        print("\non enter stSearch")
+        rospy.loginfo("\non enter stSearch")
+        self.timer = rospy.Timer(rospy.Duration(0.2), lambda _: self.mux_pub.publish(self.mux_search))
+
+        # enter autonomous mode
+        set_matrix_color(COLOR_AUTONOMOUS)
+
+        self._client = actionlib.SimpleActionClient("SearchActionServer", SearchStateAction) # "SearchActionServer", SearchAction
+        self._client.wait_for_server()
+
+        coords = coord_calculations.get_coords(self._mgr.get_coordinate()["lat"], self._mgr.get_coordinate()["long"], distance, num_vertices)
+        SEARCH_TIMEOUT_TIME = travel_timer.calc_state_time() # default = 20 meters
+
+        i = 0
+        start_time = rospy.get_rostime()
+        while (
+            rospy.get_rostime() - start_time < SEARCH_TIMEOUT_TIME
+            and not rospy.is_shutdown()
+            and i < num_vertices
+        ):
+            if (i != 0): # skip starting point because rover is already there
+                goal = SearchStateGoal(target_lat=coords[i]["lat"], target_long=coords[i]["long"], dist=coords[i]['distance']) # SearchGoal
+                self._client.send_goal(goal, done_cb=lambda status, result: self._searchActionComplete(status, result))
+
+            # Camera Service - still not sure about integrating the camera with the state machine
+            camera_service = rospy.ServiceProxy('search_pattern_service', SearchPatternService)
+            camera_service.wait_for_service('search_pattern_service')
+
+            if camera_service:
+                break # what should be done when the target object is found? how should we enter ShortRange?
+
+            i += 1
+
+    def on_exit_stSearch(self) -> None:
+        print("Exiting Search")
+        rospy.loginfo("Exiting Search")
+        self.timer.shutdown()
 
     def _shortRangeActionComplete(
         self, state: GoalStatus, _: ShortRangeActionResult
